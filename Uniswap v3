@@ -1,0 +1,98 @@
+// Delare the solidity version to be used.
+
+pragma solidity ^0.8.0;
+
+// Import necessary contracts and libraries.
+
+import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sold";
+import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/PoolAddress.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/LiquidityManagement.sol";
+
+// Declare the Uniswap V3 Deployer contract
+
+contract UniswapV3Deployer {
+
+// Declare public variables for the nonfungible position manager and the swap router
+
+INonfungiblePositionManager public nonfungiblePositionManager;
+ISwapRouter public swapRouter;
+
+// Define the constructor
+
+constructor(address_nonfungiblePositionManager, address _swapRouter) {
+
+//Initiaize the nonfungible position manager and swap router variable
+
+nonfungiblePositionManager = INonfungiblePositionManager(_nonfungiblePositionManager);
+swapRouter = ISwapRouter(_swapRouter);
+
+}
+
+// Define the deployUniswap V3 Pool function to deploy a Uniswap v3 Pool
+
+function deployUniswapV3Pool (
+
+address tokenA,
+address tokenB,
+uint24 fee,
+uint24 tickLower,
+uint24 tickUpper,
+uint256 amount0Desired,
+uint256 amount1Desired,
+uint256 amount0Min,
+uint256 amount1Min,
+address recipient,
+uint256 deadline
+
+)
+
+external returns (address pool) {
+
+// Get the Pool address
+
+pool = PoolAddress.computeAddress(
+
+    address(nonfungiblePositionManager),
+    PoolAddress.getPoolKey(tokenA, tokenB, fee)
+    
+);
+
+// Create the pool if it doesn't already exist
+
+nonfungiblePositionManager.createAndInitializePoolIfNecessary(tokenA, tokenB, fee, tickLower, tickUpper);
+
+//Approve the router spend tokens
+
+IERC20(tokeA).approve(address(swapRouter), amount0Desired);
+IERC20(tokeB).approve(address(swapRouter), amount1Desired);
+
+// Add liquidity to the pool
+
+(uint256 tokenId, uint256 liquidity, uint256 amount0, uint256 amount1) = LiquidityManagement.addLiquidity (
+    address(nonfungiblepositionManager),
+    tokenA,
+    tokenB,
+    fee,
+    tickLower,
+    tickUpper,
+    amount0Desired,
+    amount1Desired,
+    amount0Min,
+    amount1Min,
+    recipient,
+    deadline
+    
+);
+
+// Transfer ownership of the pool to the deployer
+
+nonfungiblePosistionManager.safeTransferFrom(address(this), msg.sender, tokenId, liquidity "");
+
+// Return the pool address
+
+return pool;
+
+}
+
+}
